@@ -26,7 +26,6 @@ extern "C"
         
     }
     
-    void LoginReqeust(char * szID, char * szpw, NativeDelegateNotification handler)
     {
         [[DataControl sharedManager]login:szID password:szpw completion:^(BOOL success, NSString * result) {
             handler(success, strdup([result UTF8String]));
