@@ -34,7 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(void)join:(char *)email password:(char *)pw name:(char *)name completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;   // 회원가입
 -(void)login:(char *)email password:(char *)pw completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;                    // 로그인
--(void)device_connect:(char *)serialNumber completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;                        // 기기 연결
+-(void)device_connect:(char *)serialNumber Email:(char *)szEmail completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;  // 기기 연결
 -(void)device_list:(char *)email completion:(void (^)(BOOL success, NSString * resultMessage, NSArray * list))completeHandler;                  // 기기리스트 호출
 -(void)device_quit:(char *)serialNumber completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;                           // 기기 연결 해제
 -(void)sendmessage:(char *)strMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;                    // 메시지 전송

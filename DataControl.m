@@ -125,14 +125,9 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 
 
 -(void)chatService:(QMChatService *)chatService didUpdateMessage:(QBChatMessage *)message forDialogID:(NSString *)dialogID{
-    
-//     if ([self.dialog.ID isEqualToString:dialogID] && message.senderID == self.s) {
-//         //   [self.chatDataSource updateMessage:message];
-//     }
 }
 
 - (void)chatService:(QMChatService *)chatService didUpdateMessages:(NSArray *)messages forDialogID:(NSString *)dialogID {
-    
     if ([self.dialog.ID isEqualToString:dialogID]) {
     }
 }
@@ -146,7 +141,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         if(_completeHander){
             
             if (chatDialog.lastMessageUserID != self.user_id){
-                _completeHander(YES, @"AAA");
+                _completeHander(YES, @"");
             }else{
                 
             }
@@ -242,9 +237,9 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     }];
 }
 
--(void)device_connect:(char *)serialNumber completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+-(void)device_connect:(char *)serialNumber Email:(char *)szEmail completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
 {
-    NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:@(serialNumber),@"DEVICE_ID",@"samyoung79@naver.com",@"USER_ID",nil];
+    NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:@(serialNumber),@"DEVICE_ID",@(szEmail),@"USER_ID",nil];
     
     [[WebServices sharedManager]request:@"uoplus/connect/device" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         

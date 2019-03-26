@@ -25,7 +25,7 @@ public class iOSManager : MonoBehaviour
     private static extern void SendMessageRequest(string strMessage, NativeDelegateDataNotification callback);
 
     [DllImport("__Internal")]
-    private static extern void DeviceConnectRequest(string strDevice, NativeDelegateNotification callback);
+    private static extern void DeviceConnectRequest(string strDevice, string strEmail, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
     private static extern void DeviceQuitRequest(string strDevice, NativeDelegateNotification callback);
@@ -103,7 +103,7 @@ public class iOSManager : MonoBehaviour
     public void CalliOSDeviceConnect()
     {
         Debug.Log("Unity::Plugin::DeviceConnectRequest");
-        DeviceConnectRequest("test_ios_service_001",DeviceConnectCallback);   
+        DeviceConnectRequest("test_ios_service_001","samyoung79@naver.com",DeviceConnectCallback);   
     }
     public void CalliOSDeviceRelease()
     {
