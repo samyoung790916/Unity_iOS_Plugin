@@ -31,24 +31,79 @@ NS_ASSUME_NONNULL_BEGIN
 -(id)init;
 
 // 회원가입
--(void)join:(char *)email password:(char *)pw name:(char *)name completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+-(void)join:(char *)email
+   password:(char *)pw
+       name:(char *)name
+ completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 // 로그인
--(void)login:(char *)email password:(char *)pw completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+-(void)login:(char *)email
+    password:(char *)pw
+  completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 // 기기 연결
--(void)device_connect:(char *)serialNumber Email:(char *)szEmail completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+-(void)device_connect:(char *)serialNumber
+                Email:(char *)szEmail
+           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 // 기기리스트 호출
--(void)device_list:(char *)email completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+-(void)device_list:(char *)email
+        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 // 기기 연결 해제
--(void)device_quit:(char *)serialNumber completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+-(void)device_quit:(char *)serialNumber
+        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 // 메시지 전송
--(void)sendmessage:(char *)strMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;
+-(void)sendmessage:(char *)strMessage
+        completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;
 
+// sns 회원가입
+-(void)snsJoin:(char *)sortDevice
+         email:(char *)email
+      snsToken:(char *)sns_token
+snsTwiterToken:(char *)twiter_token
+       snssort:(char *)sort
+    completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;
 
+//회원통합
+-(void)member_integrated:(char *)sortDevice
+                snsToken:(char *)snsToken
+             twiterToken:(char *)snsTwiterToken
+                 snsSort:(char *)snsSort
+                   email:(char *)email
+                      pw:(char *)pwd
+               completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+//sns로그인
+-(void)sns_login:(char *)sortDevice
+        snsToken:(char *)snsToken
+     twiterToken:(char *)snsTwiterToken
+         snsSort:(char *)snsSort
+           email:(char *)snsEmail
+           snsId:(char *)snsId
+      completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+//회원탈퇴
+-(void)retirement:(char * )email
+               pw:(char *)pw
+          snsSort:(char *)sort
+       completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+//패스워드 이메일 전송
+-(void)passwordEmailTrans:(char *)email
+                  snsSort:(char *)sort
+               completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler; 
+
+//패스워드 초기화
+-(void)password_reset:(char *)pw
+              snsSort:(char *)sort
+           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+//앱상세
+-(void)applist_serach:(char *)productid
+              country:(char *)country
+           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 @end
 
 NS_ASSUME_NONNULL_END

@@ -50,6 +50,23 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
     }];
 }
 
+-(void)get_request:(NSString *)operation argment:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler
+{
+    NSString * method = [NSString stringWithFormat:@"http://www.uoplusappstore.com:8080/Client/appInfo/{%@}?hl={%@}",[params valueForKey:@"PRODUCT_ID"],[params valueForKey:@"APP_COUNTRY"]];
+
+    AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
+    
+    [manager GET:method parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        if(completeHandler){
+            completeHandler(responseObject,nil);
+        }
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        if(completeHandler){
+            completeHandler(nil,error);
+        }
+    }];
+}
+
 -(NSArray *)methodUsingJsonFromSuccessBlock:(NSData *)data
 {
     NSError *error = nil;
@@ -176,7 +193,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         [subjson setValue:nil forKey:@"bundle"];
         [subjson setValue:@"RESPONSE" forKey:@"type"];
         
-    
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
         if(nStautsCode != 0){
@@ -444,6 +460,297 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
            completeHandler(NO,jsonstr);
        }
+    }];
+}
+
+
+
+-(void)snsJoin:(char *)sortDevice
+         email:(char *)email
+      snsToken:(char *)sns_token
+snsTwiterToken:(char *)twiter_token
+       snssort:(char *)sort
+    completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSString * strMethod = @"/join_sns/";
+    NSString * strDevice = [NSString stringWithUTF8String:sortDevice];
+    
+    if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
+        strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
+    }
+    else{
+        completeHandler(NO,@"argment error");
+    }
+    
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:sortDevice] forKey:@"sort"];
+    [json setValue:[NSString stringWithUTF8String:email] forKey:@"email"];
+    [json setValue:[NSString stringWithUTF8String:sns_token] forKey:@"sns_access_token"];
+    
+    if(twiter_token != NULL){
+        [json setValue:[NSString stringWithUTF8String:twiter_token] forKey:@"sns_secret_token"];
+    }
+    
+    [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sns_sort"];
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,[list valueForKey:@"status"]);
+        }else{
+            completeHandler(YES,[list valueForKey:@"status"]);
+        }
+    }];
+}
+
+//회원통합
+-(void)member_integrated:(char *)sortDevice
+                snsToken:(char *)snsToken
+             twiterToken:(char *)snsTwiterToken
+                 snsSort:(char *)snsSort
+                   email:(char *)email
+                      pw:(char *)pwd
+               ompletion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    
+    NSString * strMethod = @"/join_intergration/";
+    NSString * strDevice = [NSString stringWithUTF8String:sortDevice];
+    
+    if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
+        strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
+    }
+    else{
+        completeHandler(NO,@"argment error");
+    }
+    
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:sortDevice] forKey:@"sort"];
+    [json setValue:[NSString stringWithUTF8String:snsToken] forKey:@"sns_access_token"];
+    
+    if(snsTwiterToken != NULL){
+        [json setValue:[NSString stringWithUTF8String:snsTwiterToken] forKey:@"sns_secret_token"];
+    }
+    
+    [json setValue:[NSString stringWithUTF8String:snsSort] forKey:@"sns_sort"];
+    [json setValue:[NSString stringWithUTF8String:email] forKey:@"email"];
+    [json setValue:[NSString stringWithUTF8String:pwd] forKey:@"pwd"];
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        NSMutableDictionary * returnjson = [NSMutableDictionary new];
+        
+        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+        [returnjson setValue:[list valueForKey:@"message"] forKey:@"message"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,jsonstr);
+        }else{
+            completeHandler(YES,jsonstr);
+        }
+    }];
+}
+
+//sns로그인
+-(void)sns_login:(char *)sortDevice
+        snsToken:(char *)snsToken
+     twiterToken:(char *)snsTwiterToken
+         snsSort:(char *)snsSort
+           email:(char *)snsEmail
+           snsId:(char *)snsId
+      completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    
+    NSString * strMethod = @"/sns_login/";
+    NSString * strDevice = [NSString stringWithUTF8String:sortDevice];
+    
+    if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
+        strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
+    }
+    else{
+        completeHandler(NO,@"argment error");
+    }
+    
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:sortDevice] forKey:@"sort"];
+    [json setValue:[NSString stringWithUTF8String:snsSort] forKey:@"sns_access_token"];
+    [json setValue:[NSString stringWithUTF8String:snsToken] forKey:@"sns_secret_token"];
+    
+    if(snsTwiterToken != NULL){
+        [json setValue:[NSString stringWithUTF8String:snsTwiterToken] forKey:@"sns_secret_token"];
+    }
+    
+    [json setValue:[NSString stringWithUTF8String:snsSort] forKey:@"sns_sort"];
+    [json setValue:[NSString stringWithUTF8String:snsEmail] forKey:@"email"];
+    [json setValue:[NSString stringWithUTF8String:snsId] forKey:@"sns_id"];
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        NSMutableDictionary * returnjson = [NSMutableDictionary new];
+        
+        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+        [returnjson setValue:[list valueForKey:@"message"] forKey:@"message"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,jsonstr);
+        }else{
+            completeHandler(YES,jsonstr);
+        }
+    }];
+}
+
+//회원탈퇴
+-(void)retirement:(char * )email
+               pw:(char *)pw
+          snsSort:(char *)sort
+       completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    
+    NSString * strMethod = @"/deleteUser/";
+    NSString * strDevice = [NSString stringWithUTF8String:sort];
+    
+    if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
+        strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
+    }
+    else{
+        completeHandler(NO,@"argment error");
+    }
+    
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:email] forKey:@"email"];
+    [json setValue:[NSString stringWithUTF8String:pw] forKey:@"pwd"];
+    [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
+   
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+
+        NSMutableDictionary * returnjson = [NSMutableDictionary new];
+        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+        [returnjson setValue:[list valueForKey:@"message"] forKey:@"message"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,jsonstr);
+        }else{
+            completeHandler(YES,jsonstr);
+        }
+    }];
+    
+}
+
+//패스워드 이메일 전송
+-(void)passwordEmailTrans:(char *)email
+                  snsSort:(char *)sort
+               completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSString * strMethod = @"/requestResetPassword/";
+    NSString * strDevice = [NSString stringWithUTF8String:sort];
+    
+    if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
+        strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
+    }
+    else{
+        completeHandler(NO,@"argment error");
+    }
+    
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:email] forKey:@"email"];
+    [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        
+        NSMutableDictionary * returnjson = [NSMutableDictionary new];
+        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,jsonstr);
+        }else{
+            completeHandler(YES,jsonstr);
+        }
+    }];
+}
+
+//패스워드 초기화
+-(void)password_reset:(char *)pw
+              snsSort:(char *)sort
+           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSString * strMethod = @"/resetPassword/";
+    NSString * strDevice = [NSString stringWithUTF8String:sort];
+    
+    if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
+        strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
+    }
+    else{
+        completeHandler(NO,@"argment error");
+    }
+    
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:pw] forKey:@"pwd"];
+    [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        
+        NSMutableDictionary * returnjson = [NSMutableDictionary new];
+        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,jsonstr);
+        }else{
+            completeHandler(YES,jsonstr);
+        }
+    }];
+}
+
+//앱상세
+-(void)applist_serach:(char *)productid
+              country:(char *)country
+           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+{
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:productid] forKey:@"PRODUCT_ID"];
+    [json setValue:[NSString stringWithUTF8String:country] forKey:@"APP_COUNTRY"];
+    
+    [[WebServices sharedManager]get_request:nil argment:json complete:^(NSArray * list, NSError * error) {
+        
+        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        
+        NSMutableDictionary * returnjson = [NSMutableDictionary new];
+        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+        [returnjson setValue:[list valueForKey:@"data"] forKey:@"data"];
+        [returnjson setValue:[list valueForKey:@"subdata"] forKey:@"subdata"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        
+        if(nStautsCode != 0){
+            completeHandler(NO,jsonstr);
+        }else{
+            completeHandler(YES,jsonstr);
+        }
     }];
 }
 

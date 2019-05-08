@@ -31,6 +31,29 @@ public class iOSManager : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void DeviceListRequest(string strEmail, NativeDelegateNotification callback);
 
+    [DllImport("__Internal")]
+    private static extern void snsJoinReqeust(string strDevice, string strEmail, string snsToken, string strTwiterToken, strig strSort, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void memberIntegrateRequest(string strDevice, string strsnsToken, string strsnsTwiterToken, string strSort, string strEmail, string strpwd, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void snsLoginReqeust(string strSortDevice, string strsnsToken, string strsnsTwiterToken, string strSort, string strEmail, string strsnsId, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void retirementRequest(string strEmail, string strpw, string strsort, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void passwordEmailTransRequest(string strEmail, string strSort, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void passwordResetRequest(string strpw, string strSort, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void appListSearchRequest(string strproductid, string strcountry, NativeDelegateNotification callback);
+
+
+
 
     public static iOSManager GetInstance()
     {
@@ -40,8 +63,6 @@ public class iOSManager : MonoBehaviour
         }
         return _instance;
     }
-
-
     [MonoPInvokeCallback(typeof(NativeDelegateNotification))]
     public static void iOS_Callback(bool bSuccess, string strMessage)
     {
