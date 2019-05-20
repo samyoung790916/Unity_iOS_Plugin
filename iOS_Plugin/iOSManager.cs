@@ -50,7 +50,10 @@ public class iOSManager : MonoBehaviour
     private static extern void passwordResetRequest(string strpw, string strSort, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
-    private static extern void appListSearchRequest(string strproductid, string strcountry, NativeDelegateNotification callback);
+    private static extern void appListSearchRequest(string strcountry, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void appDetailReqeust(string strproductid, string strcountry, NativeDelegateNotification callback);
 
 
 

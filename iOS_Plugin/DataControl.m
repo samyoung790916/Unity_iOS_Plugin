@@ -50,7 +50,7 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
     }];
 }
 
--(void)get_request:(NSString *)operation argment:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler
+-(void)get_request_detail:(NSString *)operation argment:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler
 {
     NSString * method = [NSString stringWithFormat:@"http://www.uoplusappstore.com:8080/Client/appInfo/{%@}?hl={%@}",[params valueForKey:@"PRODUCT_ID"],[params valueForKey:@"APP_COUNTRY"]];
 
@@ -65,6 +65,37 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
             completeHandler(nil,error);
         }
     }];
+}
+
+
+-(void)get_request_list:(NSString *)operation argument:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler
+{
+    
+    NSString * strContry = [params valueForKey:@"APP_COUNTRY"];
+    
+    if([strContry isEqualToString:@"KR"] == YES ||
+       [strContry isEqualToString:@"US"] == YES ||
+       [strContry isEqualToString:@"JP"] == YES ||
+       [strContry isEqualToString:@"CN"] == YES)
+    {
+        NSString * method = [NSString stringWithFormat:@"http://www.uoplusappstore.com:8080/apps/UOplus/top-app/all?hl={%@}",[params valueForKey:@"APP_COUNTRY"]];
+        
+        AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
+        
+        [manager GET:method parameters:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            if(completeHandler){
+                completeHandler(responseObject,nil);
+            }
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            if(completeHandler){
+                completeHandler(nil,error);
+            }
+        }];
+        
+    }
+    else{
+        completeHandler(nil,nil);
+    }
 }
 
 -(NSArray *)methodUsingJsonFromSuccessBlock:(NSData *)data
@@ -625,9 +656,11 @@ snsTwiterToken:(char *)twiter_token
         completeHandler(NO,@"argment error");
     }
     
+    NSString * pwd = [self encodeStringTo64:@(pw)];
+    
     NSMutableDictionary * json = [NSMutableDictionary new];
     [json setValue:[NSString stringWithUTF8String:email] forKey:@"email"];
-    [json setValue:[NSString stringWithUTF8String:pw] forKey:@"pwd"];
+    [json setValue:pwd forKey:@"pwd"];
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
    
     
@@ -704,7 +737,8 @@ snsTwiterToken:(char *)twiter_token
     }
     
     NSMutableDictionary * json = [NSMutableDictionary new];
-    [json setValue:[NSString stringWithUTF8String:pw] forKey:@"pwd"];
+    NSString * pwd = [self encodeStringTo64:@(pw)];
+    [json setValue:pwd forKey:@"pwd"];
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
@@ -725,16 +759,56 @@ snsTwiterToken:(char *)twiter_token
     }];
 }
 
+
+-(void)app_list:(char *)country completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:country] forKey:@"APP_COUNTRY"];
+    
+    [[WebServices sharedManager]get_request_list:nil argument:json complete:^(NSArray *list, NSError *error) {
+        
+        if(list == nil && error == nil){
+            NSMutableDictionary * json = [NSMutableDictionary new];
+            NSMutableDictionary * subjson = [NSMutableDictionary new];
+            
+            [subjson setValue:@"Countries not supported" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            
+            completeHandler(NO,jsonstr);
+        }
+        else{
+            int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+            
+            NSMutableDictionary * returnjson = [NSMutableDictionary new];
+            [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
+            [returnjson setValue:[list valueForKey:@"data"] forKey:@"data"];
+            [returnjson setValue:[list valueForKey:@"subdata"] forKey:@"subdata"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            
+            if(nStautsCode != 0){
+                completeHandler(NO,jsonstr);
+            }else{
+                completeHandler(YES,jsonstr);
+            }
+        }
+    }];
+}
+
 //앱상세
--(void)applist_serach:(char *)productid
-              country:(char *)country
-           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+-(void)app_detail:(char *)productid
+           country:(char *)country
+        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 {
     NSMutableDictionary * json = [NSMutableDictionary new];
     [json setValue:[NSString stringWithUTF8String:productid] forKey:@"PRODUCT_ID"];
     [json setValue:[NSString stringWithUTF8String:country] forKey:@"APP_COUNTRY"];
     
-    [[WebServices sharedManager]get_request:nil argment:json complete:^(NSArray * list, NSError * error) {
+    [[WebServices sharedManager]get_request_detail:nil argment:json complete:^(NSArray * list, NSError * error) {
         
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
