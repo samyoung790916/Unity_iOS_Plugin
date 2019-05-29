@@ -54,7 +54,7 @@ NS_ASSUME_NONNULL_BEGIN
 -(void)device_quit:(char *)serialNumber
         completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
-// 메시지 전송
+// 메시지 전송(기기생성, 기기토큰 생성, 채팅방 생성)
 -(void)sendmessage:(char *)strMessage
         completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;
 
@@ -100,10 +100,15 @@ snsTwiterToken:(char *)twiter_token
               snsSort:(char *)sort
            completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
-//앱상세
--(void)applist_serach:(char *)productid
-              country:(char *)country
-           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+//앱 모델 별 리스트
+-(void)app_list:(char *)country
+     completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+//앱 모델 상세
+-(void)app_detail:(char *)productid
+          country:(char *)country
+       completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 @end
 
 NS_ASSUME_NONNULL_END

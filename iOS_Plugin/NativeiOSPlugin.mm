@@ -99,7 +99,6 @@ extern "C"
         [[DataControl sharedManager]member_integrated:szSortDevice
                                              snsToken:szsnsToken
                                           twiterToken:szsnsTwiterToken
-                                              snsSort:szsnsEmail
                                                 email:szsnsEmail
                                                    pw:szpwd
                                            completion:^(BOOL success, NSString * resultMessage) {
@@ -158,12 +157,20 @@ extern "C"
         }];
     }
 
-    void appListSearchRequest(char * szProductid,
-                              char * szCountry,
+    void appListSearchRequest(char * szCountry,
                               NativeDelegateNotification handler)
     {   // 앱모델별 리스트 조회
         
-        [[DataControl sharedManager]applist_serach:szProductid country:szCountry completion:^(BOOL success, NSString * _Nonnull resultMessage) {
+        [[DataControl sharedManager]app_list:szCountry completion:^(BOOL success, NSString * _Nonnull resultMessage) {
+            handler(success,strdup([resultMessage UTF8String]));
+        }];
+    }
+    
+    void appDetailReqeust(char * szProductId,
+                          char * szContry,
+                          NativeDelegateNotification handler)
+    {
+        [[DataControl sharedManager]app_detail:szProductId country:szContry completion:^(BOOL success, NSString * _Nonnull resultMessage) {
             handler(success,strdup([resultMessage UTF8String]));
         }];
     }
