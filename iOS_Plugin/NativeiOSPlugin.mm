@@ -99,7 +99,6 @@ extern "C"
         [[DataControl sharedManager]member_integrated:szSortDevice
                                              snsToken:szsnsToken
                                           twiterToken:szsnsTwiterToken
-                                              snsSort:szsnsSort
                                                 email:szsnsEmail
                                                    pw:szpwd
                                            completion:^(BOOL success, NSString * resultMessage) {
