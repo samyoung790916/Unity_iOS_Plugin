@@ -35,10 +35,21 @@ extern "C"
         }];
     }
     
+    void SendMessageRequest(char * szMessage,
+                            NativeDelegateNotification handler)
+    {
+        [[DataControl sharedManager] sendmessage:szMessage completion:^(BOOL success, NSString * _Nullable errorMessage) {
+            handler(success, strdup([errorMessage UTF8String]));
+        }];
+    }
+
+    
     void DeviceConnectRequest(char * szDevice,
                               char * szEmail,
                               NativeDelegateNotification handler)
     {
+        
+        
         [[DataControl sharedManager]device_connect:szDevice Email:szEmail completion:^(BOOL success, NSString * resultMessage) {
             handler(success,strdup([resultMessage UTF8String]));
         }];
@@ -60,13 +71,6 @@ extern "C"
         }];
     }
     
-    void SendMessageRequest(char * szMessage,
-                            NativeDelegateNotification handler)
-    {
-        [[DataControl sharedManager] sendmessage:szMessage completion:^(BOOL success, NSString * _Nullable errorMessage) {
-            handler(success, strdup([errorMessage UTF8String]));
-        }];
-    }
 
     
     
