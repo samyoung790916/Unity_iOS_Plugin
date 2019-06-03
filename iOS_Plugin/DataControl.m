@@ -356,7 +356,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
-        if(nStautsCode != 0)
+        if(nStautsCode == -1)
         {
             [subjson setValue:@"Error_client_wolf_connnect_fail" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
@@ -364,12 +364,17 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(NO,jsonstr);
-            
         }
         else
         {
-            [subjson setValue:@"Success_client_connected" forKey:@"action"];
-            [json setValue:subjson forKey:@"command"];
+            if(nStautsCode == 8){
+                [subjson setValue:@"Success_client_duplicated_connect" forKey:@"action"];
+                [json setValue:subjson forKey:@"command"];
+                
+            }else{
+                [subjson setValue:@"Success_client_connected" forKey:@"action"];
+                [json setValue:subjson forKey:@"command"];
+            }
             
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
