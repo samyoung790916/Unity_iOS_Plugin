@@ -367,14 +367,8 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         }
         else
         {
-            if(nStautsCode == 8){
-                [subjson setValue:@"Success_client_duplicated_connect" forKey:@"action"];
-                [json setValue:subjson forKey:@"command"];
-                
-            }else{
-                [subjson setValue:@"Success_client_connected" forKey:@"action"];
-                [json setValue:subjson forKey:@"command"];
-            }
+            [subjson setValue:@"Success_client_connected" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
             
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
