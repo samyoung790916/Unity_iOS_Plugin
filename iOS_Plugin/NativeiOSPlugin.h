@@ -13,10 +13,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 typedef void (*NativeDelegateNotification)(BOOL bSuccess, const char * szMessage);
+typedef void (*NativeDelegateStatusNotification)(BOOL bSuccess);
 
 @interface NativeiOSPlugin : NSObject
 {
     NativeDelegateNotification noti_handler;
+    NativeDelegateStatusNotification noti_status_handler;
 }
 
 @end

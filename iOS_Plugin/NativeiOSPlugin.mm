@@ -48,7 +48,6 @@ extern "C"
                               char * szEmail,
                               NativeDelegateNotification handler)
     {
-
         [[DataControl sharedManager]device_connect:szDevice Email:szEmail completion:^(BOOL success, NSString * resultMessage) {
             handler(success,strdup([resultMessage UTF8String]));
         }];
@@ -176,6 +175,13 @@ extern "C"
     {
         [[DataControl sharedManager]app_detail:szProductId country:szContry completion:^(BOOL success, NSString * _Nonnull resultMessage) {
             handler(success,strdup([resultMessage UTF8String]));
+        }];
+    }
+    
+    void setDeviceStatus(NativeDelegateStatusNotification handler)
+    {
+        [[DataControl sharedManager]set_device_status:^(BOOL success) {
+            handler(success);
         }];
     }
 }

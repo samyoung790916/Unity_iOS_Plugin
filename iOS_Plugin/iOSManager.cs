@@ -12,6 +12,7 @@ public class iOSManager : MonoBehaviour
     static iOSManager _instance;
 
     delegate void NativeDelegateNotification(bool bSuccess, string strMessage);
+    delegate void NativeDelegateStatusNotification(bool bSuccess);
 
     [DllImport("__Internal")]
     private static extern void JoinReqeust(string strEmail,string strpw,string strName, NativeDelegateNotification callback);
@@ -55,7 +56,8 @@ public class iOSManager : MonoBehaviour
     [DllImport("__Internal")]
     private static extern void appDetailReqeust(string strproductid, string strcountry, NativeDelegateNotification callback);
 
-
+    [DllImport("__Internal")]
+    private static extern void setDeviceStatus(NativeDelegateStatusNotification callback); // 디바이스 상태가 on/off  line 확인
 
 
     public static iOSManager GetInstance()
@@ -74,6 +76,16 @@ public class iOSManager : MonoBehaviour
 
         Postbox.GetInstance.PushData(strMessage);
     }
+
+    [MonoPInvokeCallback(typeof(NativeDelegateStatusNotification))]
+    public static void iOS_STATUS_Callback(bool bSuccess)
+    {
+        Debug.Log("===========>");
+
+    }
+
+
+
 
     public void CalliOSLogin()
     {
@@ -103,8 +115,16 @@ public class iOSManager : MonoBehaviour
     }
     public void CalliOSDeviceList()
     {
-        Debug.Log("Unity::Plugin::DeviceListRequest");
-        DeviceListRequest("samyoung79@naver.com",iOS_Callback);
+        
+    }
+
+
+    public void CallDeviceStatus(){
+        Debug.Log("Unity::Plugin::setDeviceStatus");
+
+        setDeviceStatus(iOS_STATUS_Callback);
+        
+
     }
 
 

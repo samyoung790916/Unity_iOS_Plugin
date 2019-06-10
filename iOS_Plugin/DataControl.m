@@ -108,9 +108,11 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
 
 
 typedef void(^CompleteHandler)(BOOL success, NSString * _Nullable errorMessage);
+typedef void(^StatusHandler)(BOOL success);
 
 @interface DataControl ()<QMChatServiceDelegate>
 @property(strong,nonatomic)CompleteHandler completeHander;
+@property(strong,nonatomic)StatusHandler statusHandler;
 @end
 
 @implementation DataControl
@@ -136,6 +138,10 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     self = [super init];
     
     if(self){
+        
+        self.statusHandler = nil;
+        
+        
         [QBSettings setApplicationID:kApplicationID];
         [QBSettings setAuthKey:kAuthKey];
         [QBSettings setAuthSecret:kAuthSecret];
@@ -302,8 +308,22 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
                                                                                      NSArray<QBChatDialog *> * _Nullable dialogObjects,
                                                                                      NSSet<NSNumber *> * _Nullable dialogsUsersIDs,
                                                                                      BOOL * _Nonnull stop){
-                        
+                                        
                         self.dialog = dialogObjects[0];
+                        __block DataControl * blockself = self;
+                         
+                        [self.dialog setOnJoinOccupant:^(NSUInteger userID) {
+                            if(self.statusHandler != nil){
+                                blockself.statusHandler(YES); // 전원이 다시 들어왔을때
+                            }
+                         }];
+                         
+                        [self.dialog setOnLeaveOccupant:^(NSUInteger userID) {
+                            if(self.statusHandler != nil){
+                                 blockself.statusHandler(NO); // 전원이 다시 꺼졌을때
+                            }
+                        }];
+                                                                        
                         [subjson setValue:@"Success_client_connected" forKey:@"action"];
                         [json setValue:subjson forKey:@"command"];
                                                                         
@@ -460,6 +480,8 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 
 -(void)sendmessage:(char *)szMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler
 {
+    
+
     self.completeHander = completeHandler;
     
     QBChatMessage * message = [QBChatMessage new];
@@ -618,6 +640,7 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:snsSort] forKey:@"sns_sort"];
     [json setValue:[NSString stringWithUTF8String:snsEmail] forKey:@"email"];
     [json setValue:[NSString stringWithUTF8String:snsId] forKey:@"sns_id"];
+    
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         
@@ -825,6 +848,10 @@ snsTwiterToken:(char *)twiter_token
             completeHandler(YES,jsonstr);
         }
     }];
+}
+
+-(void)set_device_status:(void (^)(BOOL success))completeHandler{
+    self.statusHandler = completeHandler;
 }
 
 @end

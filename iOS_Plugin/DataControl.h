@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <Quickblox/Quickblox.h>
 #import <AFNetworking/AFNetworking.h>
+#import "NativeiOSPlugin.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -109,6 +110,9 @@ snsTwiterToken:(char *)twiter_token
 -(void)app_detail:(char *)productid
           country:(char *)country
        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+
+-(void)set_device_status:(void (^)(BOOL success))completeHandler;
 @end
 
 NS_ASSUME_NONNULL_END
