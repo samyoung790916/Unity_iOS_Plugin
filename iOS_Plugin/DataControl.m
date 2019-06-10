@@ -481,7 +481,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 -(void)sendmessage:(char *)szMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler
 {
     
-
+    
     self.completeHander = completeHandler;
     
     QBChatMessage * message = [QBChatMessage new];
@@ -501,17 +501,54 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
-    [[QMServicesManager instance].chatService sendMessage:message toDialogID:self.dialog.ID saveToHistory:YES saveToStorage:YES completion:^(NSError * _Nullable error)
-    {
-       if(error != nil)
-       {
-           [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
-           [json setValue:subjson forKey:@"command"];
-           
-           NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-           NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-           completeHandler(NO,jsonstr);
-       }
+    
+    
+    
+    
+    [self.dialog requestOnlineUsersWithCompletionBlock:^(NSMutableArray<NSNumber *> * _Nullable onlineUsers, NSError * _Nullable error){
+        BOOL bFind = NO;
+        [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
+        [json setValue:subjson forKey:@"command"];
+        
+        for(id element in onlineUsers)
+        {
+            NSString * strNumber = [element stringValue];
+            NSString * strMasterUserID = [NSString stringWithFormat:@"%ld",self.dialog.userID];
+            
+            if([strNumber isEqualToString:strMasterUserID] == YES)
+            {
+                bFind = YES;
+                [[QMServicesManager instance].chatService sendMessage:message toDialogID:self.dialog.ID saveToHistory:YES saveToStorage:YES completion:^(NSError * _Nullable error)
+                 {
+                     if(error != nil)
+                     {
+                         [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
+                         [json setValue:subjson forKey:@"command"];
+                         
+                         NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+                         completeHandler(YES,jsonstr);
+                     }
+                     else{
+                         [subjson setValue:@"Success_client_request" forKey:@"action"];
+                         [json setValue:subjson forKey:@"command"];
+                         
+                         NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+                         completeHandler(YES,jsonstr);
+                     }
+                 }];
+            }
+        }
+        if(bFind == NO)
+        {
+            [subjson setValue:@"Error_client_wolf_connect_fail" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(NO,jsonstr);
+        }
     }];
 }
 
@@ -855,3 +892,6 @@ snsTwiterToken:(char *)twiter_token
 }
 
 @end
+
+
+
