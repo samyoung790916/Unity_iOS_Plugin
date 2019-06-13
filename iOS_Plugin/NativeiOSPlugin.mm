@@ -54,23 +54,23 @@ extern "C"
     }
     
     void DeviceQuitRequest(char * szDevice,
+                           char * szEmail,
+                           char * szSort,
                            NativeDelegateNotification handler)
     {
-        [[DataControl sharedManager]device_quit:szDevice completion:^(BOOL success, NSString * resultMessage) {
+        [[DataControl sharedManager]device_quit:szDevice email:szEmail sort:szSort completion:^(BOOL success, NSString * _Nonnull resultMessage) {
             handler(success, strdup([resultMessage UTF8String]));
         }];
     }
     
     void DeviceListRequest(char * szEmail,
+                           char * szSort,
                            NativeDelegateNotification handler)
     {
-        [[DataControl sharedManager]device_list:szEmail completion:^(BOOL success, NSString * resultMessage) {
-            handler(success, strdup([resultMessage UTF8String]));
+        [[DataControl sharedManager]device_list:szEmail sort:szSort completion:^(BOOL success, NSString * _Nonnull resultMessage) {
+            handler(success,strdup([resultMessage UTF8String]));
         }];
     }
-    
-
-    
     
     void snsJoinReqeust(char * szSortDevice,
                         char * szEmail,
@@ -182,6 +182,28 @@ extern "C"
     {
         [[DataControl sharedManager]set_device_status:^(BOOL success) {
             handler(success);
+        }];
+    }
+    
+    void updateUser(char * szEamil,
+                    char * szName,
+                    char * szBirth,
+                    char * szAddress,
+                    char * szSort,
+                    NativeDelegateNotification handler)
+    {
+        [[DataControl sharedManager]update_user:szEamil name:szName birth:szBirth address:szAddress sort:szSort completion:^(BOOL success, NSString * _Nonnull resultMessage){
+            handler(success,strdup([resultMessage UTF8String]));
+        }];
+    }
+
+    void findId(char * szName,
+                char * szbirth,
+                char * szSort,
+                NativeDelegateNotification handler)
+    {
+        [[DataControl sharedManager]find_id:szName birth:szbirth sort:szSort completion:^(BOOL success, NSString * _Nonnull resultMessage) {
+            handler(success, strdup([resultMessage UTF8String]));
         }];
     }
 }

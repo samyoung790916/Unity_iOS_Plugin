@@ -42,22 +42,28 @@ NS_ASSUME_NONNULL_BEGIN
     password:(char *)pw
   completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
+
+// 메시지 전송(기기생성, 기기토큰 생성, 채팅방 생성)
+-(void)sendmessage:(char *)strMessage
+        completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;
+
 // 기기 연결
 -(void)device_connect:(char *)serialNumber
                 Email:(char *)szEmail
            completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 // 기기리스트 호출
--(void)device_list:(char *)email
+-(void)device_list:(char *)szEmail
+              sort:(char *)szSort
         completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+
 
 // 기기 연결 해제
 -(void)device_quit:(char *)serialNumber
+             email:(char *)szEmail
+              sort:(char *)szSort
         completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
-
-// 메시지 전송(기기생성, 기기토큰 생성, 채팅방 생성)
--(void)sendmessage:(char *)strMessage
-        completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler;
 
 // sns 회원가입
 -(void)snsJoin:(char *)sortDevice
@@ -111,8 +117,23 @@ snsTwiterToken:(char *)twiter_token
           country:(char *)country
        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
-
+// online/offline
 -(void)set_device_status:(void (^)(BOOL success))completeHandler;
+
+//회원정보 수정
+-(void)update_user:(char *)email
+              name:(char *)szName
+             birth:(char *)szBirth
+           address:(char *)szAdrress
+              sort:(char *)szSort
+       completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
+
+
+//아이디 찾기
+-(void)find_id:(char *)szName
+         birth:(char *)szbirth
+          sort:(char *)szSort
+    completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 @end
 
 NS_ASSUME_NONNULL_END

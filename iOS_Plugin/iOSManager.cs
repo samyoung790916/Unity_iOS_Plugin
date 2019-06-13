@@ -27,10 +27,10 @@ public class iOSManager : MonoBehaviour
     private static extern void DeviceConnectRequest(string strDevice, string strEmail, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
-    private static extern void DeviceQuitRequest(string strDevice, NativeDelegateNotification callback);
+    private static extern void DeviceQuitRequest(string strDevice,string strEmail, string strSort, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
-    private static extern void DeviceListRequest(string strEmail, NativeDelegateNotification callback);
+    private static extern void DeviceListRequest(string strEmail, string strSort, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
     private static extern void snsJoinReqeust(string strDevice, string strEmail, string snsToken, string strTwiterToken, strig strSort, NativeDelegateNotification callback);
@@ -58,6 +58,12 @@ public class iOSManager : MonoBehaviour
 
     [DllImport("__Internal")]
     private static extern void setDeviceStatus(NativeDelegateStatusNotification callback); // 디바이스 상태가 on/off  line 확인
+
+    [DllImport("__Internal")]
+    private static extern void updateUser(string strEmail, string strName, string strBirth, string strAddress, string szSort, NativeDelegateNotification callback);
+
+    [DllImport("__Internal")]
+    private static extern void findId(string strName, string strBirth, string strSort, NativeDelegateNotification callback);
 
 
     public static iOSManager GetInstance()

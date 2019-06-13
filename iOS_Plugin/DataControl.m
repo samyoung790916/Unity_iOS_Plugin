@@ -27,6 +27,8 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
 {
     self = [super init];
     if (self) {
+        
+        
     }
     return self;
 }
@@ -78,7 +80,7 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
        [strContry isEqualToString:@"JP"] == YES ||
        [strContry isEqualToString:@"CN"] == YES)
     {
-        NSString * method = [NSString stringWithFormat:@"http://www.uoplusappstore.com:8080/apps/UOplus/top-app/all?hl={%@}",[params valueForKey:@"APP_COUNTRY"]];
+        NSString * method = [NSString stringWithFormat:@"http://www.uoplusappstore.com:8080/apps/UOplus/top-app/all?hl=%@",[params valueForKey:@"APP_COUNTRY"]];
         
         AFHTTPSessionManager * manager = [AFHTTPSessionManager manager];
         
@@ -140,7 +142,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     if(self){
         
         self.statusHandler = nil;
-        
+        self.user_id = 0;
         
         [QBSettings setApplicationID:kApplicationID];
         [QBSettings setAuthKey:kAuthKey];
@@ -183,8 +185,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     if ([self.dialog.ID isEqualToString:dialogID]) {
     }
 }
-
-
 - (void)chatService:(QMChatService *)chatService didUpdateChatDialogInMemoryStorage:(QBChatDialog *)chatDialog{
     
     if(self.dialog.type != QBChatDialogTypePrivate && [self.dialog.ID isEqualToString:chatDialog.ID]){
@@ -229,6 +229,20 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         [subjson setValue:@"MOBILE_CLIENT_SERVICE" forKey:@"service"];
         [subjson setValue:nil forKey:@"bundle"];
         [subjson setValue:@"RESPONSE" forKey:@"type"];
+        
+        
+        if(error != nil){
+            [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(NO,jsonstr);
+            return;
+        }
+        
+        
+        
         
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
@@ -308,22 +322,27 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
                                                                                      NSArray<QBChatDialog *> * _Nullable dialogObjects,
                                                                                      NSSet<NSNumber *> * _Nullable dialogsUsersIDs,
                                                                                      BOOL * _Nonnull stop){
-                                        
-                        self.dialog = dialogObjects[0];
-                        __block DataControl * blockself = self;
-                         
-                        [self.dialog setOnJoinOccupant:^(NSUInteger userID) {
-                            if(self.statusHandler != nil){
-                                blockself.statusHandler(YES); // 전원이 다시 들어왔을때
-                            }
-                         }];
-                         
-                        [self.dialog setOnLeaveOccupant:^(NSUInteger userID) {
-                            if(self.statusHandler != nil){
-                                 blockself.statusHandler(NO); // 전원이 다시 꺼졌을때
-                            }
-                        }];
                                                                         
+                                                                        
+                        if(dialogObjects.count == 0){
+                        }else{
+                            self.dialog = dialogObjects[0];
+                            __block DataControl * blockself = self;
+                            
+                            [self.dialog setOnJoinOccupant:^(NSUInteger userID) {
+                                if(self.statusHandler != nil){
+                                    blockself.statusHandler(YES); // 전원이 다시 들어왔을때
+                                }
+                            }];
+                            
+                            [self.dialog setOnLeaveOccupant:^(NSUInteger userID) {
+                                if(self.statusHandler != nil){
+                                    blockself.statusHandler(NO); // 전원이 다시 꺼졌을때
+                                }
+                            }];
+                            
+                        }
+                                        
                         [subjson setValue:@"Success_client_connected" forKey:@"action"];
                         [json setValue:subjson forKey:@"command"];
                                                                         
@@ -374,6 +393,17 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         [subjson setValue:@"RESPONSE" forKey:@"type"];
         
         
+        if(error != nil){
+            [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(NO,jsonstr);
+            return;
+        }
+        
+        
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
         if(nStautsCode == -1)
@@ -397,7 +427,10 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     }];
 }
 
--(void)device_quit:(char *)serialNumber completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+-(void)device_quit:(char *)serialNumber
+             email:(char *)szEmail
+              sort:(char *)szSort
+        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 {
     NSMutableDictionary * json = [NSMutableDictionary new];
     NSMutableDictionary * subjson = [NSMutableDictionary new];
@@ -410,10 +443,28 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
-   NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:@(serialNumber),@"DEVICE_ID",@(self.user_id),@"USER_ID",nil];
+   NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:
+                           @(serialNumber),@"DEVICE_ID",
+                           @(szEmail),@"USER_ID",
+                           @(szSort),@"sort",
+                           nil];
+    
+    NSString * strMethod = [NSString stringWithFormat:@"%@/quit/chat",[NSString stringWithUTF8String:szSort]];
 
-    [[WebServices sharedManager]request:@"uoplus/quit/chat" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
+    [[WebServices sharedManager]request:strMethod argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
+        
+        if(error != nil){
+            [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(NO,jsonstr);
+            return;
+        }
+        
+        
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
         if(nStautsCode != 0)
@@ -428,7 +479,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         }
         else
         {
-            [subjson setValue:@"Error_client_login_fail" forKey:@"action"];
+            [subjson setValue:@"Success_client_unregister_device" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
             
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
@@ -437,8 +488,9 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         }
     }];
 }
-
--(void)device_list:(char *)email completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler // 기기리스트 호출
+-(void)device_list:(char *)szEmail
+              sort:(char *)szSort
+        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
 {
     NSMutableDictionary * json = [NSMutableDictionary new];
     NSMutableDictionary * subjson = [NSMutableDictionary new];
@@ -451,11 +503,37 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
-    NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:@(email),@"USER_ID", nil];
+    NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:@(szEmail),@"USER_ID",
+                                                                       @(szSort),@"sort",
+                                                                        nil];
     
-    [[WebServices sharedManager]request:@"uoplus/search/device" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
+    NSString * strMethod = [NSString stringWithFormat:@"%@/search/device",[NSString stringWithUTF8String:szSort]];
+    
+    [[WebServices sharedManager]request:strMethod argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
+        if(error != nil){
+            [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(NO,jsonstr);
+            return;
+        }
+        
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+        NSDictionary * dict = [list copy];
+        
+        for(id key in [dict allKeys]){
+            
+            if([key isEqualToString:@"deviceList"]){
+                [subjson setValue:[dict objectForKey:@"deviceList"]  forKey:@"bundle"];
+                break;
+            }
+            else{
+                [subjson setValue:nil forKey:@"bundle"];
+            }
+        }
         
         if(nStautsCode != 0)
         {
@@ -467,9 +545,10 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             completeHandler(NO,jsonstr);
         }
         else{
-            
             [subjson setValue:@"Success_client_devicelist" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
+            
+            [subjson setValue:@"list" forKey:@"bundle"];
             
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -480,8 +559,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 
 -(void)sendmessage:(char *)szMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler
 {
-    
-    
     self.completeHander = completeHandler;
     
     QBChatMessage * message = [QBChatMessage new];
@@ -501,10 +578,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
-    
-    
-    
-    
     [self.dialog requestOnlineUsersWithCompletionBlock:^(NSMutableArray<NSNumber *> * _Nullable onlineUsers, NSError * _Nullable error){
         BOOL bFind = NO;
         [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
@@ -522,7 +595,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
                  {
                      if(error != nil)
                      {
-                         [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
+                         [subjson setValue:@"Error_client_network_error" forKey:@"action"];
                          [json setValue:subjson forKey:@"command"];
                          
                          NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
@@ -568,7 +641,6 @@ snsTwiterToken:(char *)twiter_token
         strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
     }
     else{
-        completeHandler(NO,@"argment error");
     }
     
     NSMutableDictionary * json = [NSMutableDictionary new];
@@ -583,14 +655,7 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sns_sort"];
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,[list valueForKey:@"status"]);
-        }else{
-            completeHandler(YES,[list valueForKey:@"status"]);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
@@ -611,7 +676,6 @@ snsTwiterToken:(char *)twiter_token
         strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
     }
     else{
-        completeHandler(NO,@"argment error");
     }
     
     NSMutableDictionary * json = [NSMutableDictionary new];
@@ -627,21 +691,7 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:pwd] forKey:@"pwd"];
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-        NSMutableDictionary * returnjson = [NSMutableDictionary new];
-        
-        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-        [returnjson setValue:[list valueForKey:@"message"] forKey:@"message"];
-        
-        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,jsonstr);
-        }else{
-            completeHandler(YES,jsonstr);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
@@ -662,7 +712,6 @@ snsTwiterToken:(char *)twiter_token
         strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
     }
     else{
-        completeHandler(NO,@"argment error");
     }
     
     NSMutableDictionary * json = [NSMutableDictionary new];
@@ -680,21 +729,7 @@ snsTwiterToken:(char *)twiter_token
     
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-        NSMutableDictionary * returnjson = [NSMutableDictionary new];
-        
-        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-        [returnjson setValue:[list valueForKey:@"message"] forKey:@"message"];
-        
-        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,jsonstr);
-        }else{
-            completeHandler(YES,jsonstr);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
@@ -711,9 +746,6 @@ snsTwiterToken:(char *)twiter_token
     if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
         strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
     }
-    else{
-        completeHandler(NO,@"argment error");
-    }
     
     NSString * pwd = [self encodeStringTo64:@(pw)];
     
@@ -724,21 +756,7 @@ snsTwiterToken:(char *)twiter_token
    
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-
-        NSMutableDictionary * returnjson = [NSMutableDictionary new];
-        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-        [returnjson setValue:[list valueForKey:@"message"] forKey:@"message"];
-        
-        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,jsonstr);
-        }else{
-            completeHandler(YES,jsonstr);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
     
 }
@@ -754,29 +772,13 @@ snsTwiterToken:(char *)twiter_token
     if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
         strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
     }
-    else{
-        completeHandler(NO,@"argment error");
-    }
     
     NSMutableDictionary * json = [NSMutableDictionary new];
     [json setValue:[NSString stringWithUTF8String:email] forKey:@"email"];
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-        
-        NSMutableDictionary * returnjson = [NSMutableDictionary new];
-        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-        
-        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,jsonstr);
-        }else{
-            completeHandler(YES,jsonstr);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
@@ -791,9 +793,6 @@ snsTwiterToken:(char *)twiter_token
     if([strDevice isEqualToString:@"uoplus"] == YES || [strDevice isEqualToString:@"octos"] == YES){
         strMethod = [NSString stringWithFormat:@"%@%@",strMethod,strDevice];
     }
-    else{
-        completeHandler(NO,@"argment error");
-    }
     
     NSMutableDictionary * json = [NSMutableDictionary new];
     NSString * pwd = [self encodeStringTo64:@(pw)];
@@ -801,20 +800,7 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
     
     [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-        
-        NSMutableDictionary * returnjson = [NSMutableDictionary new];
-        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-        
-        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,jsonstr);
-        }else{
-            completeHandler(YES,jsonstr);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
@@ -825,36 +811,7 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:country] forKey:@"APP_COUNTRY"];
     
     [[WebServices sharedManager]get_request_list:nil argument:json complete:^(NSArray *list, NSError *error) {
-        
-        if(list == nil && error == nil){
-            NSMutableDictionary * json = [NSMutableDictionary new];
-            NSMutableDictionary * subjson = [NSMutableDictionary new];
-            
-            [subjson setValue:@"Countries not supported" forKey:@"action"];
-            [json setValue:subjson forKey:@"command"];
-            
-            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-            
-            completeHandler(NO,jsonstr);
-        }
-        else{
-            int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-            
-            NSMutableDictionary * returnjson = [NSMutableDictionary new];
-            [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-            [returnjson setValue:[list valueForKey:@"data"] forKey:@"data"];
-            [returnjson setValue:[list valueForKey:@"subdata"] forKey:@"subdata"];
-            
-            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-            
-            if(nStautsCode != 0){
-                completeHandler(NO,jsonstr);
-            }else{
-                completeHandler(YES,jsonstr);
-            }
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
@@ -868,27 +825,117 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:country] forKey:@"APP_COUNTRY"];
     
     [[WebServices sharedManager]get_request_detail:nil argment:json complete:^(NSArray * list, NSError * error) {
-        
-        int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-        
-        NSMutableDictionary * returnjson = [NSMutableDictionary new];
-        [returnjson setValue:[list valueForKey:@"status"] forKey:@"status"];
-        [returnjson setValue:[list valueForKey:@"data"] forKey:@"data"];
-        [returnjson setValue:[list valueForKey:@"subdata"] forKey:@"subdata"];
-        
-        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:returnjson options:0 error:nil];
-        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-        
-        if(nStautsCode != 0){
-            completeHandler(NO,jsonstr);
-        }else{
-            completeHandler(YES,jsonstr);
-        }
+        [self section:list error:error completion:completeHandler];
     }];
 }
 
 -(void)set_device_status:(void (^)(BOOL success))completeHandler{
     self.statusHandler = completeHandler;
+}
+
+//회원정보 수정
+-(void)update_user:(char *)email
+              name:(char *)szName
+             birth:(char *)szBirth
+           address:(char *)szAdrress
+              sort:(char *)szSort
+        completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:email] forKey:@"USER_ID"];
+    [json setValue:[NSString stringWithUTF8String:szName] forKey:@"USER_BIRTH"];
+    [json setValue:[NSString stringWithUTF8String:szAdrress] forKey:@"USER_ADDRESS"];
+    
+    NSString * strMethod = [NSString stringWithFormat:@"/updateUser/%@",[NSString stringWithUTF8String:szSort]];
+    
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        [self section:list error:error completion:completeHandler];
+    }];
+}
+
+
+//아이디 찾기
+-(void)find_id:(char *)szName
+         birth:(char *)szbirth
+          sort:(char *)szSort
+    completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    [json setValue:[NSString stringWithUTF8String:szName] forKey:@"USER_NAME"];
+    [json setValue:[NSString stringWithUTF8String:szbirth] forKey:@"USER_BIRTH"];
+    
+    NSString * strMethod = [NSString stringWithFormat:@"/find_id/%@",[NSString stringWithUTF8String:szSort]];
+    
+    
+    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+        [self section:list error:error completion:completeHandler];
+    }];
+}
+
+
+-(void)section:(NSArray *)list error:(NSError *) error completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+{
+    NSMutableDictionary * json = [NSMutableDictionary new];
+    NSMutableDictionary * subjson = [NSMutableDictionary new];
+    NSNumber * number = [NSNumber numberWithUnsignedInteger:([[NSDate date] timeIntervalSince1970] * 1000)];
+    
+    
+    NSDictionary * dict = [list copy];
+    
+    for(id key in [dict allKeys]){
+        
+        if([key isEqualToString:@"data"]){
+            [subjson setValue:[dict objectForKey:@"data"]  forKey:@"bundle"];
+            break;
+        }
+        else{
+            [subjson setValue:nil forKey:@"bundle"];
+        }
+    }
+    
+    
+    
+    [json setValue:@"" forKey:@"senderId"];
+    [json setValue:@"" forKey:@"receiverId"];
+    [json setValue:number forKey:@"date"];
+    [subjson setValue:@"MOBILE_CLIENT_SERVICE" forKey:@"service"];
+    
+    [subjson setValue:@"RESPONSE" forKey:@"type"];
+    
+    
+    
+    if(error != nil){
+        [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
+        [json setValue:subjson forKey:@"command"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        completeHandler(NO,jsonstr);
+        return;
+    }
+    
+    int nStautsCode = [[list valueForKey:@"status_code"]intValue];
+    
+    if(nStautsCode != 0)
+    {
+        [subjson setValue:@"Error_client_network_error" forKey:@"action"];
+        [json setValue:subjson forKey:@"command"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        completeHandler(NO,jsonstr);
+    }
+    else
+    {
+        [subjson setValue:@"Success_client_request" forKey:@"action"];
+        [json setValue:subjson forKey:@"command"];
+        
+        NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+        NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+        completeHandler(YES,jsonstr);
+    }
+    
 }
 
 @end
