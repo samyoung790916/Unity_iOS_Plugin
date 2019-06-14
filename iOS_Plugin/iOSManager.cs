@@ -33,7 +33,7 @@ public class iOSManager : MonoBehaviour
     private static extern void DeviceListRequest(string strEmail, string strSort, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
-    private static extern void snsJoinReqeust(string strDevice, string strEmail, string snsToken, string strTwiterToken, strig strSort, NativeDelegateNotification callback);
+    private static extern void snsJoinReqeust(string strDevice, string strEmail, string snsToken, string strTwiterToken, string strSort, NativeDelegateNotification callback);
 
     [DllImport("__Internal")]
     private static extern void memberIntegrateRequest(string strDevice, string strsnsToken, string strsnsTwiterToken, string strSort, string strEmail, string strpwd, NativeDelegateNotification callback);
