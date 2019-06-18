@@ -29,6 +29,9 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
     if (self) {
         
         
+
+        
+        
     }
     return self;
 }
@@ -341,6 +344,12 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
                                 }
                             }];
                             
+//                            [self.dialog setOnUpdateOccupant:^(NSUInteger userID) {
+//                                if(self.statusHandler != nil){
+//
+//                                }
+//                            }];
+                            
                         }
                                         
                         [subjson setValue:@"Success_client_connected" forKey:@"action"];
@@ -414,6 +423,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(NO,jsonstr);
+            
         }
         else
         {
@@ -423,6 +433,10 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(YES,jsonstr);
+            
+            if(self.statusHandler != nil){
+                self.statusHandler(YES);
+            }
         }
     }];
 }
