@@ -27,11 +27,6 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
 {
     self = [super init];
     if (self) {
-        
-        
-
-        
-        
     }
     return self;
 }
@@ -244,9 +239,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             return;
         }
         
-        
-        
-        
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
         if(nStautsCode != 0){
@@ -273,6 +265,8 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 {
     NSString * pwd = [self encodeStringTo64:@(pw)];
     NSDictionary * param = @{@"email":@(email),@"pwd":pwd};
+    
+    _completeHander = completeHandler;
 
     [[WebServices sharedManager]request:@"login/uoplus" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
@@ -343,13 +337,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
                                     blockself.statusHandler(NO); // 전원이 다시 꺼졌을때
                                 }
                             }];
-                            
-//                            [self.dialog setOnUpdateOccupant:^(NSUInteger userID) {
-//                                if(self.statusHandler != nil){
-//
-//                                }
-//                            }];
-                            
                         }
                                         
                         [subjson setValue:@"Success_client_connected" forKey:@"action"];
@@ -375,11 +362,10 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         {
             [subjson setValue:@"Error_client_login_fail" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
-            
+        
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-            
-            self.completeHander(NO,jsonstr);
+            _completeHander(NO,jsonstr);
         }
     }];
 }
@@ -573,8 +559,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 
 -(void)sendmessage:(char *)szMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler
 {
-    self.completeHander = completeHandler;
-    
     QBChatMessage * message = [QBChatMessage new];
     message.text = @(szMessage);
     message.senderID = [QBSession currentSession].currentUser.ID;
