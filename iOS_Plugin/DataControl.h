@@ -25,6 +25,13 @@ NS_ASSUME_NONNULL_BEGIN
 @interface DataControl : NSObject
 
 @property (nonatomic) NSUInteger user_id;
+
+
+@property (strong,nonatomic) NSString * strEmail;  // 아이디
+@property (strong,nonatomic) NSString * strPw;  // 아이디
+
+@property (strong,nonatomic) NSString * strqbpw;     // 비밀번호
+
 @property (strong, nonatomic) QBChatDialog * dialog;
 
 +(instancetype)sharedManager;

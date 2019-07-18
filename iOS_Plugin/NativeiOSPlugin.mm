@@ -49,6 +49,8 @@ extern "C"
                               NativeDelegateNotification handler)
     {
         [[DataControl sharedManager]device_connect:szDevice Email:szEmail completion:^(BOOL success, NSString * resultMessage) {
+            
+            NSLog(@"%@",resultMessage);
             handler(success,strdup([resultMessage UTF8String]));
         }];
     }
