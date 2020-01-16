@@ -13,7 +13,6 @@
 @implementation WebServices
 
 NSString * baseUrl = @"http://35.244.21.255:8080/";
-//NSString * baseUrl = @"http://34.93.74.0:8080/";
 
 +(instancetype)sharedManager
 {
@@ -111,7 +110,7 @@ NSString * baseUrl = @"http://35.244.21.255:8080/";
 typedef void(^CompleteHandler)(BOOL success, NSString * _Nullable errorMessage);
 typedef void(^StatusHandler)(BOOL success);
 
-@interface DataControl ()<QMChatServiceDelegate,QBChatDelegate>
+@interface DataControl ()<QMChatServiceDelegate>
 @property(strong,nonatomic)CompleteHandler completeHander;
 @property(strong,nonatomic)StatusHandler statusHandler;
 @end
@@ -159,17 +158,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 
 
 #pragma mark - QMChatServiceDelegate
-
-
--(void)chatDidConnect{
-    NSLog(@"chatDidConnect");
-
-}
-
--(void)chatDidReconnect{
-    NSLog(@"chatDidReconnect");
-    
-}
 
 -(void)chatService:(QMChatService *)chatService didDeleteChatDialogWithIDFromMemoryStorage:(NSString *)chatDialogID{
     if ([self.dialog.ID isEqualToString:chatDialogID]) {
@@ -240,6 +228,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         [subjson setValue:nil forKey:@"bundle"];
         [subjson setValue:@"RESPONSE" forKey:@"type"];
         
+        
         if(error != nil){
             [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
@@ -277,10 +266,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     NSString * pwd = [self encodeStringTo64:@(pw)];
     NSDictionary * param = @{@"email":@(email),@"pwd":pwd};
     
-    self.strEmail = @(email);
-    self.strPw = pwd;
-    
-    
     _completeHander = completeHandler;
 
     [[WebServices sharedManager]request:@"login/uoplus" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
@@ -314,24 +299,23 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             NSDictionary * pDict = [list valueForKey:@"data"];
             self.user_id = [[list valueForKey:@"qb_id"]intValue];
             
-            self.strqbpw = [list valueForKey:@"qb_pw"];
-            self.strEmail = pDict[@"email"];
+            NSString * strpw = [list valueForKey:@"qb_pw"];
+            NSString * strEmail = pDict[@"email"];
 
             QBUUser * user = [QBUUser user];
             user.ID = self.user_id;
-            user.password = self.strqbpw;
-            user.login = _strEmail;
+            user.password = strpw;
+            user.login = strEmail;
             
             [DataControl sharedManager];
-            
 
             [[QMServicesManager instance]logInWithUser:user completion:^(BOOL success, NSString * _Nullable errorMessage)
             {
                 if(success)
                 {
                     [[QMServicesManager instance].chatService allDialogsWithPageLimit:10
-                                                                      extendedRequest:nil
-                                                                       iterationBlock:^(QBResponse * _Nonnull response,
+                                                                   extendedRequest:nil
+                                                                    iterationBlock:^(QBResponse * _Nonnull response,
                                                                                      NSArray<QBChatDialog *> * _Nullable dialogObjects,
                                                                                      NSSet<NSNumber *> * _Nullable dialogsUsersIDs,
                                                                                      BOOL * _Nonnull stop){
@@ -384,7 +368,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             _completeHander(NO,jsonstr);
         }
     }];
-    
 }
 
 -(void)device_connect:(char *)serialNumber Email:(char *)szEmail completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
@@ -404,6 +387,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         [subjson setValue:nil forKey:@"bundle"];
         [subjson setValue:@"RESPONSE" forKey:@"type"];
         
+        
         if(error != nil){
             [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
@@ -413,6 +397,7 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             completeHandler(NO,jsonstr);
             return;
         }
+        
         
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
@@ -424,93 +409,20 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(NO,jsonstr);
+            
         }
         else
         {
-            NSDictionary * param = @{@"email":self.strEmail,@"pwd":self.strPw};
+            [subjson setValue:@"Success_client_connected" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
             
-            _completeHander = completeHandler;
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(YES,jsonstr);
             
-            [[WebServices sharedManager]request:@"login/uoplus" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
-             {
-                 NSMutableDictionary * json = [NSMutableDictionary new];
-                 NSMutableDictionary * subjson = [NSMutableDictionary new];
-                 NSNumber * number = [NSNumber numberWithUnsignedInteger:([[NSDate date] timeIntervalSince1970] * 1000)];
-                 
-                 [json setValue:@"" forKey:@"senderId"];
-                 [json setValue:@"" forKey:@"receiverId"];
-                 [json setValue:number forKey:@"date"];
-                 [subjson setValue:@"MOBILE_CLIENT_SERVICE" forKey:@"service"];
-                 [subjson setValue:nil forKey:@"bundle"];
-                 [subjson setValue:@"RESPONSE" forKey:@"type"];
-                 
-                 if(error == nil)
-                 {
-                     int nStautsCode = [[list valueForKey:@"status_code"]intValue];
-                     
-                     if(nStautsCode != 0)
-                     {
-                         [subjson setValue:@"Error_client_server_error" forKey:@"action"];
-                         [json setValue:subjson forKey:@"command"];
-                         NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-                         
-                         completeHandler(NO,jsonstr);
-                         return;
-                     }
-                     
-                     if([self.dialog isJoined] == YES){
-                         [subjson setValue:@"Success_client_connected" forKey:@"action"];
-                         [json setValue:subjson forKey:@"command"];
-                         
-                         NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-                         completeHandler(YES,jsonstr);
-                         
-                         if(self.statusHandler != nil){
-                             self.statusHandler(YES);
-                         }
-                     }else{
-                         QBUUser * user = [QBUUser user];
-                         user.ID = self.user_id;
-                         user.password = self.strqbpw;
-                         user.login = _strEmail;
-                         
-                         [[QMServicesManager instance]logInWithUser:user completion:^(BOOL success, NSString * _Nullable errorMessage)
-                          {
-                              if(success){
-                                  [[QMServicesManager instance].chatService allDialogsWithPageLimit:10
-                                                                                    extendedRequest:nil
-                                                                                     iterationBlock:^(QBResponse * _Nonnull response, NSArray<QBChatDialog *> * _Nullable dialogObjects, NSSet<NSNumber *> * _Nullable dialogsUsersIDs, BOOL * _Nonnull stop) {
-                                      
-                                      if(dialogObjects.count == 0){
-                                      }
-                                      else{
-                                          self.dialog = dialogObjects[0];
-                                          [subjson setValue:@"Success_client_connected" forKey:@"action"];
-                                          [json setValue:subjson forKey:@"command"];
-                                          
-                                          NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                                          NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-                                          completeHandler(YES,jsonstr);
-                                          
-                                          if(self.statusHandler != nil){
-                                              self.statusHandler(YES);
-                                          }
-                                      }
-                                  }];
-                              }
-                          }];
-                     }
-                 }else{
-                     [subjson setValue:@"Error_client_login_fail" forKey:@"action"];
-                     [json setValue:subjson forKey:@"command"];
-                     
-                     NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                     NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-                     _completeHander(NO,jsonstr);
-                 }
-             }];
+            if(self.statusHandler != nil){
+                self.statusHandler(YES);
+            }
         }
     }];
 }
@@ -573,15 +485,6 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(YES,jsonstr);
-            
-            
-            
-            
-            
-            
-            
-   
-
         }
     }];
 }
@@ -673,36 +576,50 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
-    
-    [DataControl sharedManager];
-    
-    [self.dialog requestOnlineUsersWithCompletionBlock:^(NSMutableArray<NSNumber *> * _Nullable onlineUsers,
-                                                         NSError * _Nullable error){
+    [self.dialog requestOnlineUsersWithCompletionBlock:^(NSMutableArray<NSNumber *> * _Nullable onlineUsers, NSError * _Nullable error){
+        BOOL bFind = NO;
+        [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
+        [json setValue:subjson forKey:@"command"];
         
-        
-        [[QMServicesManager instance].chatService sendMessage:message
-                                                   toDialogID:self.dialog.ID
-                                                saveToHistory:YES
-                                                saveToStorage:YES completion:^(NSError * _Nullable error)
-         {
-             if(error != nil)
-             {
-                 [subjson setValue:@"Error_client_network_error" forKey:@"action"];
-                 [json setValue:subjson forKey:@"command"];
-                 
-                 NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                 NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-                 completeHandler(YES,jsonstr);
-             }
-             else{
-                 [subjson setValue:@"Success_client_request" forKey:@"action"];
-                 [json setValue:subjson forKey:@"command"];
-                 
-                 NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
-                 NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-                 completeHandler(YES,jsonstr);
-             }
-         }];
+        for(id element in onlineUsers)
+        {
+            NSString * strNumber = [element stringValue];
+            NSString * strMasterUserID = [NSString stringWithFormat:@"%ld",self.dialog.userID];
+            
+            if([strNumber isEqualToString:strMasterUserID] == YES)
+            {
+                bFind = YES;
+                [[QMServicesManager instance].chatService sendMessage:message toDialogID:self.dialog.ID saveToHistory:YES saveToStorage:YES completion:^(NSError * _Nullable error)
+                 {
+                     if(error != nil)
+                     {
+                         [subjson setValue:@"Error_client_network_error" forKey:@"action"];
+                         [json setValue:subjson forKey:@"command"];
+                         
+                         NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+                         completeHandler(YES,jsonstr);
+                     }
+                     else{
+                         [subjson setValue:@"Success_client_request" forKey:@"action"];
+                         [json setValue:subjson forKey:@"command"];
+                         
+                         NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+                         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+                         completeHandler(YES,jsonstr);
+                     }
+                 }];
+            }
+        }
+        if(bFind == NO)
+        {
+            [subjson setValue:@"Error_client_wolf_connect_fail" forKey:@"action"];
+            [json setValue:subjson forKey:@"command"];
+            
+            NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
+            NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
+            completeHandler(NO,jsonstr);
+        }
     }];
 }
 
