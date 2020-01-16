@@ -7,12 +7,11 @@
 //
 
 #import "DataControl.h"
-#import "QMChatService.h"
-#import "QMServicesManager.h"
+#import <QMServicesManager.h>
 
 @implementation WebServices
 
-NSString * baseUrl = @"http://35.244.21.255:8080/";
+NSString * baseUrl = @"http://34.93.223.59:5006/";
 
 +(instancetype)sharedManager
 {
@@ -117,11 +116,10 @@ typedef void(^StatusHandler)(BOOL success);
 
 @implementation DataControl
 
-const NSUInteger kApplicationID = 75783;
-NSString *const kAuthKey        = @"AUQgNL8EKQRzgK2";
-NSString *const kAuthSecret     = @"wZOwVHU-QL2BttL";
-NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
-
+const NSUInteger kApplicationID = 7;
+NSString * const kAuthKey        = @"SfK7Oagt8ksN7p-";
+NSString * const kAuthSecret     = @"O5k266HKdmuAX8x";
+NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
 
 +(instancetype)sharedManager;
 {
@@ -137,8 +135,8 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
 {
     self = [super init];
     
-    if(self){
-        
+    if(self)
+    {
         self.statusHandler = nil;
         self.user_id = 0;
         
@@ -147,9 +145,12 @@ NSString *const kAccountKey     = @"U8hGuaeL_v6-hK1sfKrN";
         [QBSettings setAuthSecret:kAuthSecret];
         [QBSettings setAccountKey:kAccountKey];
         
+        [QBSettings setApiEndpoint:@"https://api1thefull.quickblox.com"];
+        [QBSettings setChatEndpoint:@"chat1thefull.quickblox.com"];
+
         [QBSettings setCarbonsEnabled:YES];
         [QBSettings enableXMPPLogging];
-        
+    
         [[QMServicesManager instance].chatService addDelegate:self];
         [QMServicesManager instance].chatService.chatAttachmentService.delegate = self;
     }
@@ -937,6 +938,7 @@ snsTwiterToken:(char *)twiter_token
 }
 
 @end
+
 
 
 

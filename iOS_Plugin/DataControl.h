@@ -100,7 +100,7 @@ snsTwiterToken:(char *)twiter_token
 //패스워드 이메일 전송
 -(void)passwordEmailTrans:(char *)email
                   snsSort:(char *)sort
-               completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler; 
+               completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler;
 
 //패스워드 초기화
 -(void)password_reset:(char *)pw
@@ -137,3 +137,4 @@ snsTwiterToken:(char *)twiter_token
 @end
 
 NS_ASSUME_NONNULL_END
+
