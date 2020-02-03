@@ -23,7 +23,4 @@ typedef void (*NativeDelegateStatusNotification)(BOOL bSuccess);
 
 @end
 
-
-//@property (assign)
-
 NS_ASSUME_NONNULL_END

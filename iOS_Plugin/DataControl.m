@@ -13,6 +13,8 @@
 
 NSString * baseUrl = @"http://34.93.223.59:5006/";
 
+QBUUser * g_user;
+
 +(instancetype)sharedManager
 {
     static id sharedMyManager = nil;
@@ -29,7 +31,11 @@ NSString * baseUrl = @"http://34.93.223.59:5006/";
     }
     return self;
 }
--(void)request:(NSString *)operation argment:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler{
+
+-(void)request:(NSString *)operation
+       argment:(NSDictionary *)params
+      complete:(void (^)(NSArray * list, NSError * error))completeHandler
+{
 
     NSString * method = [NSString stringWithFormat:@"%@%@",baseUrl,operation];
 
@@ -49,7 +55,9 @@ NSString * baseUrl = @"http://34.93.223.59:5006/";
     }];
 }
 
--(void)get_request_detail:(NSString *)operation argment:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler
+-(void)get_request_detail:(NSString *)operation
+                  argment:(NSDictionary *)params
+                 complete:(void (^)(NSArray * list, NSError * error))completeHandler
 {
     NSString * method = [NSString stringWithFormat:@"http://www.uoplusappstore.com:8080/Client/appInfo/{%@}?hl={%@}",[params valueForKey:@"PRODUCT_ID"],[params valueForKey:@"APP_COUNTRY"]];
 
@@ -67,9 +75,10 @@ NSString * baseUrl = @"http://34.93.223.59:5006/";
 }
 
 
--(void)get_request_list:(NSString *)operation argument:(NSDictionary *)params complete:(void (^)(NSArray * list, NSError * error))completeHandler
+-(void)get_request_list:(NSString *)operation
+               argument:(NSDictionary *)params
+               complete:(void (^)(NSArray * list, NSError * error))completeHandler
 {
-    
     NSString * strContry = [params valueForKey:@"APP_COUNTRY"];
     
     if([strContry isEqualToString:@"KR"] == YES ||
@@ -176,7 +185,6 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     }
 }
 
-
 -(void)chatService:(QMChatService *)chatService didUpdateMessage:(QBChatMessage *)message forDialogID:(NSString *)dialogID{
 }
 
@@ -211,7 +219,10 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     return base64String;
 }
 
--(void)join:(char *)email  password:(char *)pw name:(char *)name completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+-(void)join:(char *)email
+   password:(char *)pw
+       name:(char *)name
+ completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
 {
     NSString * pwd = [self encodeStringTo64:@(pw)];
     NSDictionary * param = @{@"email":@(email),@"pwd":pwd,@"name":@(name)};
@@ -228,7 +239,6 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
         [subjson setValue:@"MOBILE_CLIENT_SERVICE" forKey:@"service"];
         [subjson setValue:nil forKey:@"bundle"];
         [subjson setValue:@"RESPONSE" forKey:@"type"];
-        
         
         if(error != nil){
             [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
@@ -262,14 +272,19 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
 }
 
 
--(void)login:(char *)email password:(char *)pw completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+-(void)login:(char *)email
+    password:(char *)pw
+  completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
 {
+    
     NSString * pwd = [self encodeStringTo64:@(pw)];
     NSDictionary * param = @{@"email":@(email),@"pwd":pwd};
     
     _completeHander = completeHandler;
 
-    [[WebServices sharedManager]request:@"login/uoplus" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
+    [[WebServices sharedManager]request:@"login/uoplus"
+                                argment:param
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
         NSMutableDictionary * json = [NSMutableDictionary new];
         NSMutableDictionary * subjson = [NSMutableDictionary new];
@@ -303,14 +318,14 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
             NSString * strpw = [list valueForKey:@"qb_pw"];
             NSString * strEmail = pDict[@"email"];
 
-            QBUUser * user = [QBUUser user];
-            user.ID = self.user_id;
-            user.password = strpw;
-            user.login = strEmail;
+            g_user = [QBUUser user];
+            g_user.ID = self.user_id;
+            g_user.password = strpw;
+            g_user.login = strEmail;
             
             [DataControl sharedManager];
-
-            [[QMServicesManager instance]logInWithUser:user completion:^(BOOL success, NSString * _Nullable errorMessage)
+            [[QMServicesManager instance]logInWithUser:g_user
+                                            completion:^(BOOL success, NSString * _Nullable errorMessage)
             {
                 if(success)
                 {
@@ -339,7 +354,6 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
                                 }
                             }];
                         }
-                                        
                         [subjson setValue:@"Success_client_connected" forKey:@"action"];
                         [json setValue:subjson forKey:@"command"];
                                                                         
@@ -371,11 +385,15 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     }];
 }
 
--(void)device_connect:(char *)serialNumber Email:(char *)szEmail completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+-(void)device_connect:(char *)serialNumber
+                Email:(char *)szEmail
+           completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
 {
     NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:@(serialNumber),@"DEVICE_ID",@(szEmail),@"USER_ID",nil];
     
-    [[WebServices sharedManager]request:@"uoplus/connect/device" argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
+    [[WebServices sharedManager]request:@"uoplus/connect/device"
+                                argment:param
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
         NSMutableDictionary * json = [NSMutableDictionary new];
         NSMutableDictionary * subjson = [NSMutableDictionary new];
@@ -421,6 +439,28 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(YES,jsonstr);
             
+            
+            [[QMServicesManager instance]logInWithUser:g_user
+                                            completion:^(BOOL success, NSString * _Nullable errorMessage) {
+                
+                if(success)
+                {
+                    [[QMServicesManager instance].chatService allDialogsWithPageLimit:10
+                                                                      extendedRequest:nil
+                                                                       iterationBlock:^(QBResponse * _Nonnull response,
+                                                                                        NSArray<QBChatDialog *> * _Nullable dialogObjects,
+                                                                                        NSSet<NSNumber *> * _Nullable dialogsUsersIDs,
+                                                                                        BOOL * _Nonnull stop)
+                    {
+                        if(dialogObjects.count == 0){
+                        }
+                        else{
+                            self.dialog = dialogObjects[0];
+                        }
+                    }completion:^(QBResponse * _Nonnull response) {}];
+                }
+            }];
+            
             if(self.statusHandler != nil){
                 self.statusHandler(YES);
             }
@@ -444,17 +484,18 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
-   NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:
-                           @(serialNumber),@"DEVICE_ID",
-                           @(szEmail),@"USER_ID",
-                           @(szSort),@"sort",
-                           nil];
+    NSDictionary * param = [[NSDictionary alloc]initWithObjectsAndKeys:
+                            @(serialNumber),@"DEVICE_ID",
+                            @(szEmail),@"USER_ID",
+                            @(szSort),@"sort",
+                            nil];
     
     NSString * strMethod = [NSString stringWithFormat:@"%@/quit/chat",[NSString stringWithUTF8String:szSort]];
-
-    [[WebServices sharedManager]request:strMethod argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
+    
+    [[WebServices sharedManager]request:strMethod
+                                argment:param
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
-        
         if(error != nil){
             [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
@@ -464,7 +505,6 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
             completeHandler(NO,jsonstr);
             return;
         }
-        
         
         int nStautsCode = [[list valueForKey:@"status_code"]intValue];
         
@@ -476,10 +516,10 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
             NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
             NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
             completeHandler(NO,jsonstr);
-            
         }
         else
         {
+            
             [subjson setValue:@"Success_client_unregister_device" forKey:@"action"];
             [json setValue:subjson forKey:@"command"];
             
@@ -489,6 +529,7 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
         }
     }];
 }
+
 -(void)device_list:(char *)szEmail
               sort:(char *)szSort
         completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
@@ -510,7 +551,9 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     
     NSString * strMethod = [NSString stringWithFormat:@"%@/search/device",[NSString stringWithUTF8String:szSort]];
     
-    [[WebServices sharedManager]request:strMethod argment:param complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
+    [[WebServices sharedManager]request:strMethod
+                                argment:param
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error)
     {
         if(error != nil){
             [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
@@ -558,7 +601,8 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     }];
 }
 
--(void)sendmessage:(char *)szMessage completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler
+-(void)sendmessage:(char *)szMessage
+        completion:(void (^)(BOOL success, NSString * _Nullable errorMessage))completeHandler
 {
     QBChatMessage * message = [QBChatMessage new];
     message.text = @(szMessage);
@@ -577,6 +621,7 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
     [subjson setValue:nil forKey:@"bundle"];
     [subjson setValue:@"RESPONSE" forKey:@"type"];
     
+    
     [self.dialog requestOnlineUsersWithCompletionBlock:^(NSMutableArray<NSNumber *> * _Nullable onlineUsers, NSError * _Nullable error){
         BOOL bFind = NO;
         [subjson setValue:@"Error_client_wolf_message_invalid_protocol" forKey:@"action"];
@@ -590,11 +635,16 @@ NSString * const kAccountKey     = @"1sBGVjaxojoFec9JAZtD";
             if([strNumber isEqualToString:strMasterUserID] == YES)
             {
                 bFind = YES;
-                [[QMServicesManager instance].chatService sendMessage:message toDialogID:self.dialog.ID saveToHistory:YES saveToStorage:YES completion:^(NSError * _Nullable error)
+                [[QMServicesManager instance].chatService sendMessage:message
+                                                           toDialogID:self.dialog.ID
+                                                        saveToHistory:YES
+                                                        saveToStorage:YES
+                                                           completion:^(NSError * _Nullable error)
                  {
                      if(error != nil)
                      {
-                         [subjson setValue:@"Error_client_network_error" forKey:@"action"];
+                         //[subjson setValue:@"Error_client_network_error" forKey:@"action"];
+                         [subjson setValue:@"Success_client_request" forKey:@"action"];
                          [json setValue:subjson forKey:@"command"];
                          
                          NSData * jsonData = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
@@ -653,7 +703,9 @@ snsTwiterToken:(char *)twiter_token
     
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sns_sort"];
     
-    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+    [[WebServices sharedManager]request:strMethod
+                                argment:json
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         [self section:list error:error completion:completeHandler];
     }];
 }
@@ -727,7 +779,9 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:snsId] forKey:@"sns_id"];
     
     
-    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+    [[WebServices sharedManager]request:strMethod
+                                argment:json
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         [self section:list error:error completion:completeHandler];
     }];
 }
@@ -754,7 +808,9 @@ snsTwiterToken:(char *)twiter_token
     [json setValue:[NSString stringWithUTF8String:sort] forKey:@"sort"];
    
     
-    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+    [[WebServices sharedManager]request:strMethod
+                                argment:json
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         [self section:list error:error completion:completeHandler];
     }];
     
@@ -804,7 +860,8 @@ snsTwiterToken:(char *)twiter_token
 }
 
 
--(void)app_list:(char *)country completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
+-(void)app_list:(char *)country
+     completion:(void (^)(BOOL success, NSString * resultMessage))completeHandler
 {
     NSMutableDictionary * json = [NSMutableDictionary new];
     [json setValue:[NSString stringWithUTF8String:country] forKey:@"APP_COUNTRY"];
@@ -848,7 +905,9 @@ snsTwiterToken:(char *)twiter_token
     NSString * strMethod = [NSString stringWithFormat:@"/updateUser/%@",[NSString stringWithUTF8String:szSort]];
     
     
-    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+    [[WebServices sharedManager]request:strMethod
+                                argment:json
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         [self section:list error:error completion:completeHandler];
     }];
 }
@@ -867,7 +926,9 @@ snsTwiterToken:(char *)twiter_token
     NSString * strMethod = [NSString stringWithFormat:@"/find_id/%@",[NSString stringWithUTF8String:szSort]];
     
     
-    [[WebServices sharedManager]request:strMethod argment:json complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
+    [[WebServices sharedManager]request:strMethod
+                                argment:json
+                               complete:^(NSArray * _Nonnull list, NSError * _Nonnull error) {
         [self section:list error:error completion:completeHandler];
     }];
 }
@@ -879,11 +940,10 @@ snsTwiterToken:(char *)twiter_token
     NSMutableDictionary * subjson = [NSMutableDictionary new];
     NSNumber * number = [NSNumber numberWithUnsignedInteger:([[NSDate date] timeIntervalSince1970] * 1000)];
     
-    
     NSDictionary * dict = [list copy];
     
-    for(id key in [dict allKeys]){
-        
+    for(id key in [dict allKeys])
+    {
         if([key isEqualToString:@"data"]){
             [subjson setValue:[dict objectForKey:@"data"]  forKey:@"bundle"];
             break;
@@ -893,16 +953,12 @@ snsTwiterToken:(char *)twiter_token
         }
     }
     
-    
-    
     [json setValue:@"" forKey:@"senderId"];
     [json setValue:@"" forKey:@"receiverId"];
     [json setValue:number forKey:@"date"];
+    
     [subjson setValue:@"MOBILE_CLIENT_SERVICE" forKey:@"service"];
-    
     [subjson setValue:@"RESPONSE" forKey:@"type"];
-    
-    
     
     if(error != nil){
         [subjson setValue:@"Error_client_network_error/server" forKey:@"action"];
@@ -934,7 +990,6 @@ snsTwiterToken:(char *)twiter_token
         NSString * jsonstr = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
         completeHandler(YES,jsonstr);
     }
-    
 }
 
 @end
